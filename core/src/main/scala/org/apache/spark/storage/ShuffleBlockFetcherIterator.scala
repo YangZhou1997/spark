@@ -33,6 +33,8 @@ import org.apache.spark.network.util.TransportConf
 import org.apache.spark.shuffle.FetchFailedException
 import org.apache.spark.util.Utils
 import org.apache.spark.util.io.ChunkedByteBufferOutputStream
+import org.apache.spark.network.buffer.NioManagedBuffer
+import org.apache.spark.network.buffer.NettyManagedBuffer
 
 /**
  * An iterator that fetches multiple blocks. For local blocks, it fetches from the local block
@@ -242,6 +244,7 @@ final class ShuffleBlockFetcherIterator(
           }
         }
         logTrace("Got remote block " + blockId + " after " + Utils.getUsedTimeMs(startTime))
+        // logError("Got remote block " + blockId + " after " + Utils.getUsedTimeMs(startTime))
       }
 
       override def onBlockFetchFailure(blockId: String, e: Throwable): Unit = {
@@ -437,6 +440,49 @@ final class ShuffleBlockFetcherIterator(
               s"(expectedApproxSize = $size, isNetworkReqDone=$isNetworkReqDone)"
             throwFetchFailedException(blockId, address, new IOException(msg))
           }
+        //   logError("Received buf size " + Utils.bytesToString(buf.size))
+            import java.nio.ByteBuffer
+            import java.nio.file.{Files, Paths, Path, StandardCopyOption}
+            import java.nio.channels.FileChannel
+            import java.io.{FileInputStream, FileOutputStream, RandomAccessFile}
+                
+            val dst = "/home/administrator/shuffle_log/" + blockId + ".blk"
+
+            // logWarning("buf type" + buf.getClass().toString())
+            if(buf.isInstanceOf[FileSegmentManagedBuffer]){
+                val bytebuf = buf.nioByteBuffer()
+                // not append
+                val fc = new FileOutputStream(dst, false).getChannel()
+                fc.write(bytebuf);
+                fc.close();
+            }
+            else if(buf.isInstanceOf[NioManagedBuffer]){
+                val bytebuf = buf.nioByteBuffer()
+                // not append
+                val fc = new FileOutputStream(dst, false).getChannel()
+                fc.write(bytebuf);
+                fc.close();
+            }
+            else if(buf.isInstanceOf[NettyManagedBuffer]){
+                val bytebuf = buf.nioByteBuffer()
+                // not append
+                val fc = new FileOutputStream(dst, false).getChannel()
+                fc.write(bytebuf);
+                fc.close();
+            }
+            else{
+                logWarning("Unknown buf type" + buf.getClass().toString())
+            }
+            // val tmpInputStream = buf.createInputStream()
+            // val buflen = buf.size()
+            // // tmpInputStream.mark(buflen.toInt + 1)
+            // var streamlen = tmpInputStream.available()
+            // logWarning("before: buflen " + Utils.bytesToString(buflen) + " vs. streamlen " + Utils.bytesToString(streamlen))
+            // import java.nio.file.{Files, Paths, Path, StandardCopyOption}
+            // Files.copy(tmpInputStream, dst, StandardCopyOption.REPLACE_EXISTING)
+            // // tmpInputStream.reset()
+            // streamlen = tmpInputStream.available()
+            // logWarning("after: buflen " + Utils.bytesToString(buflen) + " vs. streamlen " + Utils.bytesToString(streamlen))
 
           val in = try {
             buf.createInputStream()
