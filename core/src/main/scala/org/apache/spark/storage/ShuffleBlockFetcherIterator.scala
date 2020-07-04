@@ -446,33 +446,41 @@ final class ShuffleBlockFetcherIterator(
             import java.nio.channels.FileChannel
             import java.io.{FileInputStream, FileOutputStream, RandomAccessFile}
                 
-            val dst = "/home/administrator/shuffle_log/" + blockId + ".blk"
+            // val dst = "/home/administrator/shuffle_log/" + blockId + ".blk"
+            val dst = "/home/administrator/shuffle_log/networkshuffle.dat"
 
-            // logWarning("buf type" + buf.getClass().toString())
+            logWarning(buf.getClass().toString() + " " + buf.size().toString() + " " + dst)
+
+            // val bytebuf = buf.nioByteBuffer()
+            // val fc = new FileOutputStream(dst, true).getChannel()
+            // fc.write(bytebuf)
+            // fc.close()
+
             if(buf.isInstanceOf[FileSegmentManagedBuffer]){
-                val bytebuf = buf.nioByteBuffer()
-                // not append
-                val fc = new FileOutputStream(dst, false).getChannel()
-                fc.write(bytebuf);
-                fc.close();
+                // val bytebuf = buf.nioByteBuffer()
+                // // not append
+                // val fc = new FileOutputStream(dst, false).getChannel()
+                // fc.write(bytebuf)
+                // fc.close()
             }
             else if(buf.isInstanceOf[NioManagedBuffer]){
-                val bytebuf = buf.nioByteBuffer()
-                // not append
-                val fc = new FileOutputStream(dst, false).getChannel()
-                fc.write(bytebuf);
-                fc.close();
+                // val bytebuf = buf.nioByteBuffer()
+                // // not append
+                // val fc = new FileOutputStream(dst, false).getChannel()
+                // fc.write(bytebuf)
+                // fc.close()
             }
             else if(buf.isInstanceOf[NettyManagedBuffer]){
                 val bytebuf = buf.nioByteBuffer()
-                // not append
-                val fc = new FileOutputStream(dst, false).getChannel()
-                fc.write(bytebuf);
-                fc.close();
+                // append
+                val fc = new FileOutputStream(dst, true).getChannel()
+                fc.write(bytebuf)
+                fc.close()
             }
             else{
                 logWarning("Unknown buf type" + buf.getClass().toString())
             }
+
             // val tmpInputStream = buf.createInputStream()
             // val buflen = buf.size()
             // // tmpInputStream.mark(buflen.toInt + 1)

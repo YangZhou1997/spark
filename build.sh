@@ -6,7 +6,7 @@ set -e
 mv spark-2.4.5-bin-custom-spark.tgz ../
 cd .. && tar -xvf spark-2.4.5-bin-custom-spark.tgz
 
-for i in `seq 6 1 22`; do 
+for i in `seq 5 1 22`; do 
     echo node$i
     ssh administrator@node$i "rm -r ./shuffle_log; mkdir shuffle_log"
 done
@@ -15,7 +15,9 @@ done
 /home/administrator/spark-2.4.5-bin-custom-spark/bin/spark-sql --master yarn --database tpcds_bin_partitioned_parquet_1000 -f /home/administrator/hive-testbench/sample-queries-tpcds/query12.sql
 
 for i in `seq 6 1 22`; do 
-    rsync -r administrator@node$i:~/shuffle_log/ ~/shuffle_log/
+    echo "rsync node$i"
+    # rsync -r administrator@node$i:~/shuffle_log/ ~/shuffle_log/
+    scp administrator@node$i:~/shuffle_log/networkshuffle.dat ~/shuffle_log/networkshuffle.dat$i
 done
 
 
